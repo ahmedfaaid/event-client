@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import './Auth.css'
+import AuthContext from '../context/auth-context'
 
 import axios from 'axios'
 
@@ -9,6 +10,8 @@ class AuthPage extends Component {
         password: '',
         isLoginMode: true
     }
+
+    static contextType = AuthContext
 
     switchAuthMode = () =>
         this.setState(prevState => {
@@ -63,7 +66,16 @@ class AuthPage extends Component {
 
                 return response
             })
-            .then(responseData => console.log(responseData))
+            .then(responseData => {
+                const authData = responseData.data.data
+                if (authData.login.token) {
+                    this.context.login(
+                        authData.login.token,
+                        authData.login.userId,
+                        authData.login.tokenExpiration
+                    )
+                }
+            })
             .catch(err => console.log(err))
 
         this.setState({

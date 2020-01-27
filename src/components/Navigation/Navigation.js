@@ -26,6 +26,13 @@ const Navigation = props => (
                                     <NavLink to='/auth'>Login</NavLink>
                                 </li>
                             )}
+                            {context.token && (
+                                <li>
+                                    <button onClick={context.logout}>
+                                        Logout
+                                    </button>
+                                </li>
+                            )}
                         </ul>
                     </nav>
                 </header>

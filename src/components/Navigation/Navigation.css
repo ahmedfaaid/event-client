@@ -8,6 +8,7 @@
     padding: 0 1rem;
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 
 .navigation__logo h1 {
@@ -24,20 +25,34 @@
     margin: 0;
     padding: 0;
     list-style: none;
+    align-items: center;
 }
 
 .navigation__items li {
     margin: 0 1rem;
 }
 
-.navigation__items a {
+.navigation__items a,
+.navigation__items button {
     text-decoration: none;
     color: #000;
     border-bottom: 1px solid transparent;
 }
 
+.navigation__items button {
+    border: none;
+    font: inherit;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    margin: 0;
+    padding: 0;
+}
+
 .navigation__items a:hover,
-.navigation__items a:active {
+.navigation__items a:active,
+.navigation__items button:hover,
+.navigation__items button:active {
     color: #fff;
 }
 

@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import Modal from '../components/Modal/Modal'
 import Backdrop from '../components/Backdrop/Backdrop'
+import EventList from '../components/Events/EventList/EventList'
 import './Events.css'
+import Spinner from '../components/Spinner/Spinner'
 import AuthContext from '../context/auth-context'
 import axios from 'axios'
 
@@ -12,7 +14,9 @@ class EventsPage extends Component {
         price: '',
         date: '',
         description: '',
-        events: []
+        events: [],
+        isLoading: false,
+        eventSelected: null
     }
 
     static contextType = AuthContext
@@ -26,7 +30,7 @@ class EventsPage extends Component {
     }
 
     cancelAddEvent = () => {
-        this.setState({ modalOpen: false })
+        this.setState({ modalOpen: false, eventSelected: null })
     }
 
     confirmAddEvent = () => {
@@ -76,12 +80,29 @@ class EventsPage extends Component {
                 return response
             })
             .then(responseData => {
-                this.fetchEvents()
+                const { createEvent } = responseData.data.data
+                this.setState(prevState => {
+                    const updatedEvents = [
+                        ...prevState.events,
+                        {
+                            _id: createEvent.userId,
+                            title: createEvent.title,
+                            price: createEvent.price,
+                            date: createEvent.date,
+                            description: createEvent.description,
+                            creator: {
+                                _id: this.context.userId
+                            }
+                        }
+                    ]
+                    return { events: updatedEvents }
+                })
             })
             .catch(err => console.log(err))
     }
 
     fetchEvents() {
+        this.setState({ isLoading: true })
         const eventsQuery = `
                 query {
                     events {
@@ -113,15 +134,31 @@ class EventsPage extends Component {
             })
             .then(responseData => {
                 const { events } = responseData.data.data
-                this.setState({ events: [...events] })
+                this.setState({ events: [...events], isLoading: false })
             })
-            .catch(err => console.log(err))
+            .catch(err => {
+                console.log(err)
+                this.setState({ isLoading: false })
+            })
     }
+
+    showEventDetails = eventId => {
+        this.setState(prevState => {
+            const eventSelected = prevState.events.find(
+                event => event._id === eventId
+            )
+            return { eventSelected: eventSelected }
+        })
+    }
+
+    bookEvent = () => {}
 
     render() {
         return (
             <>
-                {this.state.modalOpen && <Backdrop />}
+                {(this.state.modalOpen || this.state.eventSelected) && (
+                    <Backdrop />
+                )}
                 {this.state.modalOpen && (
                     <Modal
                         title='Add Event'
@@ -129,6 +166,7 @@ class EventsPage extends Component {
                         canConfirm
                         cancel={this.cancelAddEvent}
                         confirm={this.confirmAddEvent}
+                        confirmText='Confirm'
                     >
                         <form action=''>
                             <div className='form-control'>
@@ -186,6 +224,25 @@ class EventsPage extends Component {
                         </form>
                     </Modal>
                 )}
+                {this.state.eventSelected && (
+                    <Modal
+                        title={this.state.eventSelected.title}
+                        canCancel
+                        canConfirm
+                        cancel={this.cancelAddEvent}
+                        confirm={this.bookEvent}
+                        confirmText='Book'
+                    >
+                        <h1>{this.state.eventSelected.title}</h1>
+                        <h2>
+                            ${this.state.eventSelected.price} -
+                            {new Date(
+                                this.state.eventSelected.date
+                            ).toLocaleDateString()}
+                        </h2>
+                        <p>{this.state.eventSelected.description}</p>
+                    </Modal>
+                )}
                 {this.context.token && (
                     <div className='events-control'>
                         <p>Add an event!</p>
@@ -194,13 +251,15 @@ class EventsPage extends Component {
                         </button>
                     </div>
                 )}
-                <ul className='events__list'>
-                    {this.state.events.map(event => (
-                        <li className='events__list-item' key={event._id}>
-                            {event.title}
-                        </li>
-                    ))}
-                </ul>
+                {this.state.isLoading ? (
+                    <Spinner />
+                ) : (
+                    <EventList
+                        events={this.state.events}
+                        userId={this.context.userId}
+                        viewEventDetails={this.showEventDetails}
+                    />
+                )}
             </>
         )
     }

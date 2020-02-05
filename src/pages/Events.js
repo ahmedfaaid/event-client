@@ -103,6 +103,7 @@ class EventsPage extends Component {
 
     fetchEvents() {
         this.setState({ isLoading: true })
+
         const eventsQuery = `
                 query {
                     events {
@@ -134,6 +135,7 @@ class EventsPage extends Component {
             })
             .then(responseData => {
                 const { events } = responseData.data.data
+
                 this.setState({ events: [...events], isLoading: false })
             })
             .catch(err => {
@@ -151,7 +153,48 @@ class EventsPage extends Component {
         })
     }
 
-    bookEvent = () => {}
+    bookEvent = () => {
+        if (!this.context.token) {
+            this.setState({ eventSelected: null })
+            return
+        }
+
+        const bookEventMutation = `
+                mutation {
+                    bookEvent(eventId: "${this.state.eventSelected._id}") {
+                        _id
+                        createdAt
+                        updatedAt
+                    }
+                }
+            `
+
+        const token = this.context.token
+
+        axios({
+            url: 'http://localhost:3010/api/v1',
+            method: 'post',
+            data: {
+                query: bookEventMutation
+            },
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then(response => {
+                if (response.status !== 200 && response.status !== 201)
+                    throw new Error('Failed')
+
+                return response
+            })
+            .then(responseData => {
+                console.log(responseData)
+                this.setState({ eventSelected: null })
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    }
 
     render() {
         return (
@@ -231,7 +274,7 @@ class EventsPage extends Component {
                         canConfirm
                         cancel={this.cancelAddEvent}
                         confirm={this.bookEvent}
-                        confirmText='Book'
+                        confirmText={this.context.token ? 'Book' : 'Confirm'}
                     >
                         <h1>{this.state.eventSelected.title}</h1>
                         <h2>

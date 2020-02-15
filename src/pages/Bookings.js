@@ -66,21 +66,23 @@ class BookingsPage extends Component {
         this.setState({ isLoading: true })
 
         const cancelBookingMutation = `
-                mutation {
-                    cancelBooking(bookingId: "${bookingId}") {
+                mutation CancelBooking($id: ID!) {
+                    cancelBooking(bookingId: $id) {
                         _id
                         title
                     }
                 }
             `
-
         const token = this.context.token
 
         axios({
             url: 'http://localhost:3010/api/v1',
             method: 'post',
             data: {
-                query: cancelBookingMutation
+                query: cancelBookingMutation,
+                variables: {
+                    id: bookingId
+                }
             },
             headers: {
                 Authorization: `Bearer ${token}`

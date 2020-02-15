@@ -33,8 +33,8 @@ class AuthPage extends Component {
             return
 
         let authQuery = `
-            query {
-                login(email: "${enteredEmail}", password: "${enteredPassword}") {
+            query Login($enteredEmail: String!, $enteredPassword: String!) {
+                login(email: $enteredEmail, password: $enteredPassword) {
                     userId
                     token
                     tokenExpiration
@@ -44,8 +44,8 @@ class AuthPage extends Component {
 
         if (!this.state.isLoginMode) {
             authQuery = `
-                mutation {
-                    createUser(userInput: {email: "${enteredEmail}", password: "${enteredPassword}"}) {
+                mutation CreateUser($enteredEmail: String!, $enteredPassword: String!) {
+                    createUser(userInput: {email: $enteredEmail, password: $enteredPassword}) {
                         _id
                         email
                     }
@@ -57,7 +57,11 @@ class AuthPage extends Component {
             url: 'http://localhost:3010/api/v1',
             method: 'post',
             data: {
-                query: authQuery
+                query: authQuery,
+                variables: {
+                    enteredEmail,
+                    enteredPassword
+                }
             }
         })
             .then(response => {

@@ -50,8 +50,8 @@ class EventsPage extends Component {
             return
 
         const addEventMutation = `
-                mutation {
-                    createEvent(eventInput: {title: "${title}", price: ${price}, date: "${date}", description: "${description}"}) {
+                mutation CreateEvent($title: String!, $price: Float!, $date: String!, $description: String!) {
+                    createEvent(eventInput: {title: $title, price: $price, date: $date, description: $description}) {
                         _id
                         title
                         price
@@ -67,7 +67,13 @@ class EventsPage extends Component {
             url: 'http://localhost:3010/api/v1',
             method: 'post',
             data: {
-                query: addEventMutation
+                query: addEventMutation,
+                variables: {
+                    title,
+                    price,
+                    date,
+                    description
+                }
             },
             headers: {
                 Authorization: `Bearer ${token}`
@@ -159,9 +165,11 @@ class EventsPage extends Component {
             return
         }
 
+        const eventId = this.state.eventSelected._id
+
         const bookEventMutation = `
-                mutation {
-                    bookEvent(eventId: "${this.state.eventSelected._id}") {
+                mutation BookEvent($eventId: ID!) {
+                    bookEvent(eventId: $eventId) {
                         _id
                         createdAt
                         updatedAt
@@ -175,7 +183,10 @@ class EventsPage extends Component {
             url: 'http://localhost:3010/api/v1',
             method: 'post',
             data: {
-                query: bookEventMutation
+                query: bookEventMutation,
+                variables: {
+                    eventId
+                }
             },
             headers: {
                 Authorization: `Bearer ${token}`

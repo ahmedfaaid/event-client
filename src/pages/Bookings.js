@@ -1,13 +1,16 @@
 import React, { Component } from 'react'
 import BookingList from '../components/Bookings/BookingList/BookingList'
+import BookingsChart from '../components/Bookings/BookingsChart/BookingsChart'
 import AuthContext from '../context/auth-context'
 import axios from 'axios'
 import Spinner from '../components/Spinner/Spinner'
+import BookingsControls from '../components/Bookings/BookingsControls/BookingsControls'
 
 class BookingsPage extends Component {
     state = {
         isLoading: false,
-        bookings: []
+        bookings: [],
+        view: 'list'
     }
 
     static contextType = AuthContext
@@ -28,6 +31,7 @@ class BookingsPage extends Component {
                             _id
                             title
                             date
+                            price
                         }
                     }
                 }
@@ -109,19 +113,37 @@ class BookingsPage extends Component {
             })
     }
 
+    changeView = view => {
+        if (view === 'list') {
+            this.setState({ view: 'list' })
+        } else {
+            this.setState({ view: 'chart' })
+        }
+    }
+
     render() {
-        return (
-            <>
-                {this.state.isLoading ? (
-                    <Spinner />
-                ) : (
-                    <BookingList
-                        bookings={this.state.bookings}
-                        cancelBooking={this.cancelBooking}
+        let content = <Spinner />
+        if (!this.state.isLoading) {
+            content = (
+                <>
+                    <BookingsControls
+                        activeView={this.state.view}
+                        changeView={this.changeView}
                     />
-                )}
-            </>
-        )
+                    <div>
+                        {this.state.view === 'list' ? (
+                            <BookingList
+                                bookings={this.state.bookings}
+                                cancelBooking={this.cancelBooking}
+                            />
+                        ) : (
+                            <BookingsChart bookings={this.state.bookings} />
+                        )}
+                    </div>
+                </>
+            )
+        }
+        return <>{content}</>
     }
 }
 
